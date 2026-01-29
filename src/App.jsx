@@ -18,19 +18,21 @@ import {
 } from 'recharts';
 import {
   Target, TrendingUp, Calendar, Award, BookOpen, Code, Brain,
-  Briefcase, FileText, Download, Upload, Plus, Check, Flame,
+  FileText, Download, Plus, Check, Flame,
   LogOut, User, Loader
 } from 'lucide-react';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 const TARGETS = {
-  leetcode: 300,
+  leetcode: 150,
   systemDesign: 15,
   mlTheory: 12,
-  projectHours: 90,
+  projects: 6,
   mockInterviews: 12,
-  applications: 40,
+  researchPapers: 10,
+  kaggleCompetitions: 3,
+  mlopsDeployments: 5,
   blogPosts: 6,
   linkedinPosts: 48
 };
@@ -40,10 +42,10 @@ const defaultData = {
   startDate: new Date().toISOString().split('T')[0],
   settings: {
     weeklyGoals: {
-      leetcode: 25,
+      leetcode: 13,
       systemDesign: 2,
       mlTheory: 1,
-      projectHours: 7.5
+      projects: 1
     }
   }
 };
@@ -61,9 +63,16 @@ export default function App() {
     leetcodeHard: 0,
     systemDesign: 0,
     mlTheory: 0,
-    projectHours: 0,
+    projectML: false,
+    projectDL: false,
+    projectRAG: false,
+    projectAgents: false,
+    projectFineTuning: false,
+    projectLLM: false,
     mockInterview: false,
-    applications: 0,
+    researchPaper: false,
+    kaggleCompetition: false,
+    mlopsDeployment: false,
     blogPost: false,
     linkedinPost: false,
     notes: ''
@@ -150,15 +159,19 @@ export default function App() {
       leetcodeHard: acc.leetcodeHard + (log.leetcodeHard || 0),
       systemDesign: acc.systemDesign + (log.systemDesign || 0),
       mlTheory: acc.mlTheory + (log.mlTheory || 0),
-      projectHours: acc.projectHours + (log.projectHours || 0),
+      projects: acc.projects + (log.projectML ? 1 : 0) + (log.projectDL ? 1 : 0) + (log.projectRAG ? 1 : 0) +
+                (log.projectAgents ? 1 : 0) + (log.projectFineTuning ? 1 : 0) + (log.projectLLM ? 1 : 0),
       mockInterviews: acc.mockInterviews + (log.mockInterview ? 1 : 0),
-      applications: acc.applications + (log.applications || 0),
+      researchPapers: acc.researchPapers + (log.researchPaper ? 1 : 0),
+      kaggleCompetitions: acc.kaggleCompetitions + (log.kaggleCompetition ? 1 : 0),
+      mlopsDeployments: acc.mlopsDeployments + (log.mlopsDeployment ? 1 : 0),
       blogPosts: acc.blogPosts + (log.blogPost ? 1 : 0),
       linkedinPosts: acc.linkedinPosts + (log.linkedinPost ? 1 : 0)
     }), {
       leetcode: 0, leetcodeEasy: 0, leetcodeMedium: 0, leetcodeHard: 0,
-      systemDesign: 0, mlTheory: 0, projectHours: 0,
-      mockInterviews: 0, applications: 0, blogPosts: 0, linkedinPosts: 0
+      systemDesign: 0, mlTheory: 0, projects: 0,
+      mockInterviews: 0, researchPapers: 0, kaggleCompetitions: 0, mlopsDeployments: 0,
+      blogPosts: 0, linkedinPosts: 0
     });
   };
 
@@ -176,7 +189,8 @@ export default function App() {
 
       if (diffDays <= 1) {
         const hasActivity = (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0) > 0 ||
-                          log.systemDesign > 0 || log.mlTheory > 0 || log.projectHours > 0;
+                          log.systemDesign > 0 || log.mlTheory > 0 || log.projectML || log.projectDL ||
+                          log.projectRAG || log.projectAgents || log.projectFineTuning || log.projectLLM;
         if (hasActivity) {
           streak++;
           currentDate = logDate;
@@ -201,7 +215,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `maang-prep-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `aiml-prep-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
   };
 
@@ -222,8 +236,8 @@ export default function App() {
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Target className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">MAANG Prep Tracker</h1>
-          <p className="text-gray-400 mb-8">Track your journey to a top tech job</p>
+          <h1 className="text-2xl font-bold text-white mb-2">AI/ML Engineer Prep Tracker</h1>
+          <p className="text-gray-400 mb-8">Track your journey to mastering AI/ML Engineering</p>
 
           <button
             onClick={handleSignIn}
@@ -254,9 +268,11 @@ export default function App() {
     { name: 'LeetCode', current: totals.leetcode, target: TARGETS.leetcode, percent: Math.round((totals.leetcode / TARGETS.leetcode) * 100) },
     { name: 'Sys Design', current: totals.systemDesign, target: TARGETS.systemDesign, percent: Math.round((totals.systemDesign / TARGETS.systemDesign) * 100) },
     { name: 'ML Theory', current: totals.mlTheory, target: TARGETS.mlTheory, percent: Math.round((totals.mlTheory / TARGETS.mlTheory) * 100) },
-    { name: 'Projects', current: Math.round(totals.projectHours), target: TARGETS.projectHours, percent: Math.round((totals.projectHours / TARGETS.projectHours) * 100) },
+    { name: 'Projects', current: totals.projects, target: TARGETS.projects, percent: Math.round((totals.projects / TARGETS.projects) * 100) },
     { name: 'Mocks', current: totals.mockInterviews, target: TARGETS.mockInterviews, percent: Math.round((totals.mockInterviews / TARGETS.mockInterviews) * 100) },
-    { name: 'Apps', current: totals.applications, target: TARGETS.applications, percent: Math.round((totals.applications / TARGETS.applications) * 100) },
+    { name: 'Papers', current: totals.researchPapers, target: TARGETS.researchPapers, percent: Math.round((totals.researchPapers / TARGETS.researchPapers) * 100) },
+    { name: 'Kaggle', current: totals.kaggleCompetitions, target: TARGETS.kaggleCompetitions, percent: Math.round((totals.kaggleCompetitions / TARGETS.kaggleCompetitions) * 100) },
+    { name: 'MLOps', current: totals.mlopsDeployments, target: TARGETS.mlopsDeployments, percent: Math.round((totals.mlopsDeployments / TARGETS.mlopsDeployments) * 100) },
   ];
 
   const chartData = data.dailyLogs.slice(-14).map(log => ({
@@ -285,7 +301,7 @@ export default function App() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-blue-400">MAANG Prep Tracker</h1>
+            <h1 className="text-2xl font-bold text-blue-400">AI/ML Engineer Prep Tracker</h1>
             <p className="text-gray-400">Week {week} of 12 • {Math.max(0, 12 - week)} weeks remaining</p>
           </div>
           <div className="flex items-center gap-3">
@@ -349,11 +365,11 @@ export default function App() {
               </div>
               <div className="bg-gradient-to-br from-purple-500 to-purple-700 p-4 rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
-                  <Briefcase size={20} />
-                  <span className="text-sm opacity-90">Applications</span>
+                  <Target size={20} />
+                  <span className="text-sm opacity-90">Projects</span>
                 </div>
-                <div className="text-3xl font-bold">{totals.applications}</div>
-                <div className="text-sm opacity-75">/ {TARGETS.applications}</div>
+                <div className="text-3xl font-bold">{totals.projects}</div>
+                <div className="text-sm opacity-75">/ {TARGETS.projects}</div>
               </div>
             </div>
 
@@ -515,30 +531,72 @@ export default function App() {
                     className="w-full bg-gray-700 rounded-lg px-4 py-2"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Project Hours</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    value={todayLog.projectHours}
-                    onChange={(e) => setTodayLog({ ...todayLog, projectHours: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-gray-700 rounded-lg px-4 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Applications Sent</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={todayLog.applications}
-                    onChange={(e) => setTodayLog({ ...todayLog, applications: parseInt(e.target.value) || 0 })}
-                    className="w-full bg-gray-700 rounded-lg px-4 py-2"
-                  />
+              </div>
+
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Target size={18} className="text-purple-400" />
+                  Industry-Grade Projects
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={todayLog.projectML}
+                      onChange={(e) => setTodayLog({ ...todayLog, projectML: e.target.checked })}
+                      className="w-4 h-4 rounded"
+                    />
+                    <span className="text-sm">ML Project</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={todayLog.projectDL}
+                      onChange={(e) => setTodayLog({ ...todayLog, projectDL: e.target.checked })}
+                      className="w-4 h-4 rounded"
+                    />
+                    <span className="text-sm">Deep Learning</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={todayLog.projectRAG}
+                      onChange={(e) => setTodayLog({ ...todayLog, projectRAG: e.target.checked })}
+                      className="w-4 h-4 rounded"
+                    />
+                    <span className="text-sm">RAG System</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={todayLog.projectAgents}
+                      onChange={(e) => setTodayLog({ ...todayLog, projectAgents: e.target.checked })}
+                      className="w-4 h-4 rounded"
+                    />
+                    <span className="text-sm">AI Agents</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={todayLog.projectFineTuning}
+                      onChange={(e) => setTodayLog({ ...todayLog, projectFineTuning: e.target.checked })}
+                      className="w-4 h-4 rounded"
+                    />
+                    <span className="text-sm">Fine-tuning</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={todayLog.projectLLM}
+                      onChange={(e) => setTodayLog({ ...todayLog, projectLLM: e.target.checked })}
+                      className="w-4 h-4 rounded"
+                    />
+                    <span className="text-sm">LLM/Reasoning</span>
+                  </label>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
                   <input
                     type="checkbox"
@@ -546,7 +604,34 @@ export default function App() {
                     onChange={(e) => setTodayLog({ ...todayLog, mockInterview: e.target.checked })}
                     className="w-5 h-5 rounded"
                   />
-                  <span>Mock Interview</span>
+                  <span className="text-sm">Mock Interview</span>
+                </label>
+                <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={todayLog.researchPaper}
+                    onChange={(e) => setTodayLog({ ...todayLog, researchPaper: e.target.checked })}
+                    className="w-5 h-5 rounded"
+                  />
+                  <span className="text-sm">Research Paper</span>
+                </label>
+                <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={todayLog.kaggleCompetition}
+                    onChange={(e) => setTodayLog({ ...todayLog, kaggleCompetition: e.target.checked })}
+                    className="w-5 h-5 rounded"
+                  />
+                  <span className="text-sm">Kaggle</span>
+                </label>
+                <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={todayLog.mlopsDeployment}
+                    onChange={(e) => setTodayLog({ ...todayLog, mlopsDeployment: e.target.checked })}
+                    className="w-5 h-5 rounded"
+                  />
+                  <span className="text-sm">MLOps Deploy</span>
                 </label>
                 <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
                   <input
@@ -555,7 +640,7 @@ export default function App() {
                     onChange={(e) => setTodayLog({ ...todayLog, blogPost: e.target.checked })}
                     className="w-5 h-5 rounded"
                   />
-                  <span>Blog Post</span>
+                  <span className="text-sm">Blog Post</span>
                 </label>
                 <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
                   <input
@@ -564,7 +649,7 @@ export default function App() {
                     onChange={(e) => setTodayLog({ ...todayLog, linkedinPost: e.target.checked })}
                     className="w-5 h-5 rounded"
                   />
-                  <span>LinkedIn Post</span>
+                  <span className="text-sm">LinkedIn Post</span>
                 </label>
               </div>
 

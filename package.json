@@ -1,6 +1,6 @@
 {
-  "name": "maang-prep-tracker",
-  "version": "1.0.0",
+  "name": "aiml-engineer-prep-tracker",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
