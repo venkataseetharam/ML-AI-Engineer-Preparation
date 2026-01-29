@@ -29,7 +29,6 @@ import TimeDistributionChart from './components/dashboard/TimeDistributionChart'
 import WeeklyTimeStats from './components/dashboard/WeeklyTimeStats';
 import VelocityChart from './components/dashboard/VelocityChart';
 import ComparisonView from './components/dashboard/ComparisonView';
-import ProgressPredictions from './components/dashboard/ProgressPredictions';
 import ProjectsTab from './components/projects/ProjectsTab';
 import MLTopicsTab from './components/ml/MLTopicsTab';
 
@@ -38,8 +37,6 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 const TARGETS = {
   leetcode: 150,
   systemDesign: 15,
-  mlTheory: 12,
-  projects: 6,
   mockInterviews: 12,
   researchPapers: 10,
   blogPosts: 6,
@@ -303,8 +300,6 @@ export default function App() {
   const progressData = [
     { name: 'LeetCode', current: totals.leetcode, target: TARGETS.leetcode, percent: Math.round((totals.leetcode / TARGETS.leetcode) * 100) },
     { name: 'Sys Design', current: totals.systemDesign, target: TARGETS.systemDesign, percent: Math.round((totals.systemDesign / TARGETS.systemDesign) * 100) },
-    { name: 'ML Theory', current: totals.mlTheory, target: TARGETS.mlTheory, percent: Math.round((totals.mlTheory / TARGETS.mlTheory) * 100) },
-    { name: 'Projects', current: totals.projects, target: TARGETS.projects, percent: Math.round((totals.projects / TARGETS.projects) * 100) },
     { name: 'Mocks', current: totals.mockInterviews, target: TARGETS.mockInterviews, percent: Math.round((totals.mockInterviews / TARGETS.mockInterviews) * 100) },
     { name: 'Papers', current: totals.researchPapers, target: TARGETS.researchPapers, percent: Math.round((totals.researchPapers / TARGETS.researchPapers) * 100) },
   ];
@@ -312,8 +307,6 @@ export default function App() {
   const weeklyProgressData = [
     { name: 'LeetCode', current: weeklyProgress.leetcode, target: weeklyGoals.leetcode || 13, percent: Math.round((weeklyProgress.leetcode / (weeklyGoals.leetcode || 13)) * 100) },
     { name: 'System Design', current: weeklyProgress.systemDesign, target: weeklyGoals.systemDesign || 2, percent: Math.round((weeklyProgress.systemDesign / (weeklyGoals.systemDesign || 2)) * 100) },
-    { name: 'ML Theory', current: weeklyProgress.mlTheory, target: weeklyGoals.mlTheory || 1, percent: Math.round((weeklyProgress.mlTheory / (weeklyGoals.mlTheory || 1)) * 100) },
-    { name: 'Projects', current: weeklyProgress.projects, target: weeklyGoals.projects || 1, percent: Math.round((weeklyProgress.projects / (weeklyGoals.projects || 1)) * 100) },
   ];
 
   const chartData = data.dailyLogs.slice(-14).map(log => ({
@@ -547,9 +540,6 @@ export default function App() {
 
             {/* Comparison View */}
             <ComparisonView dailyLogs={data.dailyLogs} />
-
-            {/* Progress Predictions */}
-            <ProgressPredictions dailyLogs={data.dailyLogs} startDate={data.startDate} />
           </div>
         )}
 
