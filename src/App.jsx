@@ -18,13 +18,15 @@ import {
 } from 'recharts';
 import {
   Target, TrendingUp, Calendar, Award, BookOpen, Code, Brain,
-  FileText, Download, Plus, Check, Flame,
+  FileText, Download, Plus, Check, Flame, Clock,
   LogOut, User, Loader, Moon, Sun
 } from 'lucide-react';
 import { useTheme } from './contexts/ThemeContext';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 import ShortcutsPanel from './components/common/ShortcutsPanel';
 import HeatmapCalendar from './components/dashboard/HeatmapCalendar';
+import TimeDistributionChart from './components/dashboard/TimeDistributionChart';
+import WeeklyTimeStats from './components/dashboard/WeeklyTimeStats';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -77,7 +79,15 @@ export default function App() {
     researchPaper: false,
     blogPost: false,
     linkedinPost: false,
-    notes: ''
+    notes: '',
+    timeSpent: {
+      leetcode: 0,
+      systemDesign: 0,
+      mlTheory: 0,
+      projects: 0,
+      reading: 0,
+      other: 0
+    }
   });
 
   // Auth state listener
@@ -491,6 +501,12 @@ export default function App() {
             {/* Activity Heatmap */}
             <HeatmapCalendar dailyLogs={data.dailyLogs} />
 
+            {/* Time Distribution Chart and Weekly Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TimeDistributionChart dailyLogs={data.dailyLogs} period="week" />
+              <WeeklyTimeStats dailyLogs={data.dailyLogs} />
+            </div>
+
             {/* Progress Bars */}
             <div className="bg-gray-800 p-4 rounded-xl">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -648,6 +664,116 @@ export default function App() {
                     onChange={(e) => setTodayLog({ ...todayLog, mlTheory: parseInt(e.target.value) || 0 })}
                     className="w-full bg-gray-700 rounded-lg px-4 py-2"
                   />
+                </div>
+              </div>
+
+              {/* Time Tracking Section */}
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Clock size={18} className="text-blue-400" />
+                  Time Spent Today (hours)
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">LeetCode</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={todayLog.timeSpent.leetcode}
+                      onChange={(e) => setTodayLog({
+                        ...todayLog,
+                        timeSpent: { ...todayLog.timeSpent, leetcode: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="w-full bg-gray-600 rounded px-3 py-2 text-sm"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">System Design</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={todayLog.timeSpent.systemDesign}
+                      onChange={(e) => setTodayLog({
+                        ...todayLog,
+                        timeSpent: { ...todayLog.timeSpent, systemDesign: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="w-full bg-gray-600 rounded px-3 py-2 text-sm"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">ML Theory</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={todayLog.timeSpent.mlTheory}
+                      onChange={(e) => setTodayLog({
+                        ...todayLog,
+                        timeSpent: { ...todayLog.timeSpent, mlTheory: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="w-full bg-gray-600 rounded px-3 py-2 text-sm"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Projects</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={todayLog.timeSpent.projects}
+                      onChange={(e) => setTodayLog({
+                        ...todayLog,
+                        timeSpent: { ...todayLog.timeSpent, projects: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="w-full bg-gray-600 rounded px-3 py-2 text-sm"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Reading</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={todayLog.timeSpent.reading}
+                      onChange={(e) => setTodayLog({
+                        ...todayLog,
+                        timeSpent: { ...todayLog.timeSpent, reading: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="w-full bg-gray-600 rounded px-3 py-2 text-sm"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Other</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={todayLog.timeSpent.other}
+                      onChange={(e) => setTodayLog({
+                        ...todayLog,
+                        timeSpent: { ...todayLog.timeSpent, other: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="w-full bg-gray-600 rounded px-3 py-2 text-sm"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-400">
+                  Total: {(
+                    todayLog.timeSpent.leetcode +
+                    todayLog.timeSpent.systemDesign +
+                    todayLog.timeSpent.mlTheory +
+                    todayLog.timeSpent.projects +
+                    todayLog.timeSpent.reading +
+                    todayLog.timeSpent.other
+                  ).toFixed(1)} hours
                 </div>
               </div>
 
