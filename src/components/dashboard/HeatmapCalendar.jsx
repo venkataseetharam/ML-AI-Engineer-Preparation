@@ -5,20 +5,19 @@ import { Flame } from 'lucide-react';
 export default function HeatmapCalendar({ dailyLogs }) {
   // Calculate activity score for each day
   const calculateActivityScore = (log) => {
-    const leetcodeCount = (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0);
+    // Support both old and new data formats
+    const leetcodeCount = log.leetcode ||
+      (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0);
     const systemDesignCount = log.systemDesign || 0;
-    const mlTheoryCount = log.mlTheory || 0;
-    const projectCount = [
-      log.projectML, log.projectDL, log.projectRAG,
-      log.projectAgents, log.projectFineTuning, log.projectLLM
-    ].filter(Boolean).length;
     const contentCount = [
       log.mockInterview, log.researchPaper, log.blogPost, log.linkedinPost
     ].filter(Boolean).length;
 
-    // Weighted scoring: LeetCode problems count more
-    return leetcodeCount * 2 + systemDesignCount * 3 + mlTheoryCount * 2 +
-           projectCount * 5 + contentCount * 2;
+    // Time spent indicator (hours)
+    const timeSpent = log.timeSpent ? Object.values(log.timeSpent).reduce((a, b) => a + b, 0) : 0;
+
+    // Weighted scoring: LeetCode + System Design + Content + Time
+    return leetcodeCount * 2 + systemDesignCount * 3 + contentCount * 2 + timeSpent;
   };
 
   // Get date range (last 365 days)
@@ -31,13 +30,10 @@ export default function HeatmapCalendar({ dailyLogs }) {
     date: log.date,
     count: calculateActivityScore(log),
     details: {
-      leetcode: (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0),
+      leetcode: log.leetcode ||
+        (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0),
       systemDesign: log.systemDesign || 0,
-      mlTheory: log.mlTheory || 0,
-      projects: [
-        log.projectML, log.projectDL, log.projectRAG,
-        log.projectAgents, log.projectFineTuning, log.projectLLM
-      ].filter(Boolean).length,
+      timeSpent: log.timeSpent ? Object.values(log.timeSpent).reduce((a, b) => a + b, 0) : 0,
     }
   }));
 
@@ -70,8 +66,7 @@ export default function HeatmapCalendar({ dailyLogs }) {
     const parts = [];
     if (details.leetcode > 0) parts.push(`${details.leetcode} LeetCode`);
     if (details.systemDesign > 0) parts.push(`${details.systemDesign} System Design`);
-    if (details.mlTheory > 0) parts.push(`${details.mlTheory} ML Theory`);
-    if (details.projects > 0) parts.push(`${details.projects} Projects`);
+    if (details.timeSpent > 0) parts.push(`${details.timeSpent.toFixed(1)}h study time`);
 
     return {
       'data-tip': `${date}\n${parts.join(', ') || 'Activity'}`

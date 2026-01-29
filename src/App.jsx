@@ -13,12 +13,12 @@ import {
 } from 'firebase/firestore';
 import { auth, googleProvider, db } from './firebase';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer
 } from 'recharts';
 import {
-  Target, TrendingUp, Calendar, Award, BookOpen, Code, Brain,
-  FileText, Download, Plus, Check, Flame, Clock, X,
+  Target, TrendingUp, Calendar, Code, Brain,
+  FileText, Download, Plus, Check, Flame, Clock,
   LogOut, User, Loader, Moon, Sun
 } from 'lucide-react';
 import { useTheme } from './contexts/ThemeContext';
@@ -27,12 +27,9 @@ import ShortcutsPanel from './components/common/ShortcutsPanel';
 import HeatmapCalendar from './components/dashboard/HeatmapCalendar';
 import TimeDistributionChart from './components/dashboard/TimeDistributionChart';
 import WeeklyTimeStats from './components/dashboard/WeeklyTimeStats';
-import ProblemAnalysisChart from './components/dashboard/ProblemAnalysisChart';
-import TopicTrackingChart from './components/dashboard/TopicTrackingChart';
 import VelocityChart from './components/dashboard/VelocityChart';
 import ComparisonView from './components/dashboard/ComparisonView';
 import ProgressPredictions from './components/dashboard/ProgressPredictions';
-import ProblemDetailsModal from './components/logging/ProblemDetailsModal';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -68,21 +65,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [saving, setSaving] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
-  const [showProblemModal, setShowProblemModal] = useState(false);
-  const [editingProblem, setEditingProblem] = useState(null);
   const [todayLog, setTodayLog] = useState({
     date: new Date().toISOString().split('T')[0],
-    leetcodeEasy: 0,
-    leetcodeMedium: 0,
-    leetcodeHard: 0,
+    leetcode: 0,
     systemDesign: 0,
-    mlTheory: 0,
-    projectML: false,
-    projectDL: false,
-    projectRAG: false,
-    projectAgents: false,
-    projectFineTuning: false,
-    projectLLM: false,
     mockInterview: false,
     researchPaper: false,
     blogPost: false,
@@ -91,12 +77,11 @@ export default function App() {
     timeSpent: {
       leetcode: 0,
       systemDesign: 0,
-      mlTheory: 0,
+      mlTopics: 0,
       projects: 0,
       reading: 0,
       other: 0
-    },
-    problemDetails: []
+    }
   });
 
   // Auth state listener
@@ -172,28 +157,6 @@ export default function App() {
     setSaving(false);
   };
 
-  // Handle problem details
-  const handleSaveProblem = (problemData) => {
-    if (editingProblem !== null) {
-      // Edit existing problem
-      const updated = [...todayLog.problemDetails];
-      updated[editingProblem] = problemData;
-      setTodayLog({ ...todayLog, problemDetails: updated });
-    } else {
-      // Add new problem
-      setTodayLog({
-        ...todayLog,
-        problemDetails: [...todayLog.problemDetails, problemData]
-      });
-    }
-    setEditingProblem(null);
-  };
-
-  const handleDeleteProblem = (index) => {
-    const updated = todayLog.problemDetails.filter((_, i) => i !== index);
-    setTodayLog({ ...todayLog, problemDetails: updated });
-  };
-
   const handleLogSubmit = async () => {
     const existingIndex = data.dailyLogs.findIndex(log => log.date === todayLog.date);
     let newLogs;
@@ -212,21 +175,16 @@ export default function App() {
 
   const calculateTotals = () => {
     return data.dailyLogs.reduce((acc, log) => ({
-      leetcode: acc.leetcode + (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0),
-      leetcodeEasy: acc.leetcodeEasy + (log.leetcodeEasy || 0),
-      leetcodeMedium: acc.leetcodeMedium + (log.leetcodeMedium || 0),
-      leetcodeHard: acc.leetcodeHard + (log.leetcodeHard || 0),
+      leetcode: acc.leetcode + (log.leetcode || 0) +
+                (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0), // Support old data
       systemDesign: acc.systemDesign + (log.systemDesign || 0),
-      mlTheory: acc.mlTheory + (log.mlTheory || 0),
-      projects: acc.projects + (log.projectML ? 1 : 0) + (log.projectDL ? 1 : 0) + (log.projectRAG ? 1 : 0) +
-                (log.projectAgents ? 1 : 0) + (log.projectFineTuning ? 1 : 0) + (log.projectLLM ? 1 : 0),
       mockInterviews: acc.mockInterviews + (log.mockInterview ? 1 : 0),
       researchPapers: acc.researchPapers + (log.researchPaper ? 1 : 0),
       blogPosts: acc.blogPosts + (log.blogPost ? 1 : 0),
       linkedinPosts: acc.linkedinPosts + (log.linkedinPost ? 1 : 0)
     }), {
-      leetcode: 0, leetcodeEasy: 0, leetcodeMedium: 0, leetcodeHard: 0,
-      systemDesign: 0, mlTheory: 0, projects: 0,
+      leetcode: 0,
+      systemDesign: 0,
       mockInterviews: 0, researchPapers: 0,
       blogPosts: 0, linkedinPosts: 0
     });
@@ -362,12 +320,6 @@ export default function App() {
     systemDesign: log.systemDesign || 0,
     mlTheory: log.mlTheory || 0
   }));
-
-  const difficultyData = [
-    { name: 'Easy', value: totals.leetcodeEasy, color: '#10B981' },
-    { name: 'Medium', value: totals.leetcodeMedium, color: '#F59E0B' },
-    { name: 'Hard', value: totals.leetcodeHard, color: '#EF4444' }
-  ].filter(d => d.value > 0);
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
@@ -584,41 +536,6 @@ export default function App() {
                   </div>
                 )}
               </div>
-
-              <div className="bg-gray-800 p-4 rounded-xl">
-                <h3 className="text-lg font-semibold mb-4">LeetCode by Difficulty</h3>
-                {difficultyData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={difficultyData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {difficultyData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-48 flex items-center justify-center text-gray-500">
-                    No problems logged yet
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Problem Analysis Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ProblemAnalysisChart dailyLogs={data.dailyLogs} />
-              <TopicTrackingChart dailyLogs={data.dailyLogs} />
             </div>
 
             {/* Velocity Tracking */}
@@ -651,125 +568,21 @@ export default function App() {
                 />
               </div>
 
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <h4 className="font-medium mb-3 flex items-center gap-2">
-                  <Code size={18} className="text-blue-400" />
-                  LeetCode Problems
-                </h4>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm text-green-400 mb-1">Easy</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={todayLog.leetcodeEasy}
-                      onChange={(e) => setTodayLog({ ...todayLog, leetcodeEasy: parseInt(e.target.value) || 0 })}
-                      className="w-full bg-gray-600 rounded px-3 py-2 text-center"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-yellow-400 mb-1">Medium</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={todayLog.leetcodeMedium}
-                      onChange={(e) => setTodayLog({ ...todayLog, leetcodeMedium: parseInt(e.target.value) || 0 })}
-                      className="w-full bg-gray-600 rounded px-3 py-2 text-center"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-red-400 mb-1">Hard</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={todayLog.leetcodeHard}
-                      onChange={(e) => setTodayLog({ ...todayLog, leetcodeHard: parseInt(e.target.value) || 0 })}
-                      className="w-full bg-gray-600 rounded px-3 py-2 text-center"
-                    />
-                  </div>
-                </div>
-
-                {/* Add Problem Details Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingProblem(null);
-                    setShowProblemModal(true);
-                  }}
-                  className="mt-3 w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <Plus size={16} />
-                  Add Problem Details
-                </button>
-
-                {/* Problem List */}
-                {todayLog.problemDetails.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {todayLog.problemDetails.map((problem, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-600 p-3 rounded-lg"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium">{problem.name}</span>
-                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                                problem.difficulty === 'Easy'
-                                  ? 'bg-green-500 text-white'
-                                  : problem.difficulty === 'Medium'
-                                  ? 'bg-yellow-500 text-white'
-                                  : 'bg-red-500 text-white'
-                              }`}>
-                                {problem.difficulty}
-                              </span>
-                              {problem.success ? (
-                                <Check size={16} className="text-green-400" />
-                              ) : (
-                                <span className="text-xs text-gray-400">Attempted</span>
-                              )}
-                            </div>
-                            {problem.topics.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {problem.topics.map(topic => (
-                                  <span key={topic} className="text-xs bg-gray-700 px-2 py-0.5 rounded">
-                                    {topic}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            <div className="text-xs text-gray-400 mt-1">
-                              {problem.attempts > 1 && `${problem.attempts} attempts • `}
-                              {problem.timeSpent > 0 && `${problem.timeSpent} min`}
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingProblem(index);
-                                setShowProblemModal(true);
-                              }}
-                              className="p-1 hover:bg-gray-700 rounded text-blue-400"
-                            >
-                              <FileText size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteProblem(index)}
-                              className="p-1 hover:bg-gray-700 rounded text-red-400"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+                    <Code size={16} className="text-blue-400" />
+                    LeetCode Problems
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={todayLog.leetcode}
+                    onChange={(e) => setTodayLog({ ...todayLog, leetcode: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-gray-700 rounded-lg px-4 py-2"
+                    placeholder="0"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">System Designs</label>
                   <input
@@ -1048,16 +861,23 @@ export default function App() {
                         {log.linkedinPost && <span className="text-xs bg-blue-600 px-2 py-1 rounded">LinkedIn</span>}
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-2 text-sm">
+                    <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-400">LC: </span>
-                        <span className="text-green-400">{log.leetcodeEasy || 0}</span>/
-                        <span className="text-yellow-400">{log.leetcodeMedium || 0}</span>/
-                        <span className="text-red-400">{log.leetcodeHard || 0}</span>
+                        <span className="text-gray-400">LeetCode: </span>
+                        <span className="text-blue-400 font-semibold">
+                          {log.leetcode || (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0)}
+                        </span>
                       </div>
-                      <div><span className="text-gray-400">SD: </span>{log.systemDesign || 0}</div>
-                      <div><span className="text-gray-400">ML: </span>{log.mlTheory || 0}</div>
-                      <div><span className="text-gray-400">Proj: </span>{log.projectHours || 0}h</div>
+                      <div>
+                        <span className="text-gray-400">System Design: </span>
+                        <span className="font-semibold">{log.systemDesign || 0}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Time: </span>
+                        <span className="font-semibold">
+                          {log.timeSpent ? Object.values(log.timeSpent).reduce((a, b) => a + b, 0).toFixed(1) : 0}h
+                        </span>
+                      </div>
                     </div>
                     {log.notes && <p className="text-sm text-gray-400 mt-2 italic">"{log.notes}"</p>}
                   </div>
@@ -1118,17 +938,6 @@ export default function App() {
       <ShortcutsPanel
         isOpen={showShortcuts}
         onClose={() => setShowShortcuts(false)}
-      />
-
-      {/* Problem Details Modal */}
-      <ProblemDetailsModal
-        isOpen={showProblemModal}
-        onClose={() => {
-          setShowProblemModal(false);
-          setEditingProblem(null);
-        }}
-        onSave={handleSaveProblem}
-        existingProblem={editingProblem !== null ? todayLog.problemDetails[editingProblem] : null}
       />
     </div>
   );
