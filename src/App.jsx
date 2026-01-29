@@ -347,6 +347,30 @@ export default function App() {
           </div>
         </div>
 
+        {/* User ID Banner - Show when logged in and owner UID not configured */}
+        {user && import.meta.env.VITE_PUBLIC_OWNER_UID === 'YOUR_USER_ID_HERE' && (
+          <div className="bg-blue-900/40 border border-blue-600 rounded-lg p-4 mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <p className="font-semibold text-blue-300 mb-1">🔑 Enable Public Sharing</p>
+                <p className="text-sm text-blue-200">Copy your User ID below to enable public viewing:</p>
+              </div>
+              <div className="flex gap-2 items-center bg-gray-900/50 px-4 py-2 rounded-lg">
+                <code className="text-xs sm:text-sm text-green-300 font-mono">{user.uid}</code>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(user.uid);
+                    alert('User ID copied! Now paste it in .env.local as VITE_PUBLIC_OWNER_UID');
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm whitespace-nowrap"
+                >
+                  Copy ID
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {tabs.filter(tab => user || tab.id !== 'log').map(tab => (
