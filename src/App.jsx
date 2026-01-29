@@ -249,37 +249,8 @@ export default function App() {
     );
   }
 
-  // Login screen
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-gray-800 p-8 rounded-2xl max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Target className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-2">AI/ML Engineer Prep Tracker</h1>
-          <p className="text-gray-400 mb-8">Track your journey to mastering AI/ML Engineering</p>
-
-          <button
-            onClick={handleSignIn}
-            className="w-full bg-white text-gray-900 py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-3 hover:bg-gray-100 transition-colors"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Sign in with Google
-          </button>
-
-          <p className="text-gray-500 text-sm mt-6">
-            Your data syncs across all devices
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Show demo data if not logged in
+  const isReadOnly = !user;
 
   const totals = calculateTotals();
   const streak = calculateStreak();
@@ -298,10 +269,10 @@ export default function App() {
   ];
 
   const weeklyProgressData = [
-    { name: 'LeetCode', current: weeklyProgress.leetcode, target: weeklyGoals.leetcode, percent: Math.round((weeklyProgress.leetcode / weeklyGoals.leetcode) * 100) },
-    { name: 'System Design', current: weeklyProgress.systemDesign, target: weeklyGoals.systemDesign, percent: Math.round((weeklyProgress.systemDesign / weeklyGoals.systemDesign) * 100) },
-    { name: 'ML Theory', current: weeklyProgress.mlTheory, target: weeklyGoals.mlTheory, percent: Math.round((weeklyProgress.mlTheory / weeklyGoals.mlTheory) * 100) },
-    { name: 'Projects', current: weeklyProgress.projects, target: weeklyGoals.projects, percent: Math.round((weeklyProgress.projects / weeklyGoals.projects) * 100) },
+    { name: 'LeetCode', current: weeklyProgress.leetcode, target: weeklyGoals.leetcode || 13, percent: Math.round((weeklyProgress.leetcode / (weeklyGoals.leetcode || 13)) * 100) },
+    { name: 'System Design', current: weeklyProgress.systemDesign, target: weeklyGoals.systemDesign || 2, percent: Math.round((weeklyProgress.systemDesign / (weeklyGoals.systemDesign || 2)) * 100) },
+    { name: 'ML Theory', current: weeklyProgress.mlTheory, target: weeklyGoals.mlTheory || 1, percent: Math.round((weeklyProgress.mlTheory / (weeklyGoals.mlTheory || 1)) * 100) },
+    { name: 'Projects', current: weeklyProgress.projects, target: weeklyGoals.projects || 1, percent: Math.round((weeklyProgress.projects / (weeklyGoals.projects || 1)) * 100) },
   ];
 
   const chartData = data.dailyLogs.slice(-14).map(log => ({
@@ -334,23 +305,44 @@ export default function App() {
             <p className="text-gray-400">Week {week} of 12 • {Math.max(0, 12 - week)} weeks remaining</p>
           </div>
           <div className="flex items-center gap-3">
-            {saving && <Loader className="w-4 h-4 text-blue-400 animate-spin" />}
-            <button onClick={exportData} className="flex items-center gap-2 px-3 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 text-sm">
-              <Download size={16} /> Export
-            </button>
-            <div className="flex items-center gap-2 bg-gray-800 px-3 py-2 rounded-lg">
-              <img src={user.photoURL} alt="" className="w-6 h-6 rounded-full" />
-              <span className="text-sm hidden sm:inline">{user.displayName?.split(' ')[0]}</span>
-            </div>
-            <button onClick={handleSignOut} className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600">
-              <LogOut size={18} />
-            </button>
+            {user ? (
+              <>
+                {saving && <Loader className="w-4 h-4 text-blue-400 animate-spin" />}
+                <button onClick={exportData} className="flex items-center gap-2 px-3 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 text-sm">
+                  <Download size={16} /> Export
+                </button>
+                <div className="flex items-center gap-2 bg-gray-800 px-3 py-2 rounded-lg">
+                  <img src={user.photoURL} alt="" className="w-6 h-6 rounded-full" />
+                  <span className="text-sm hidden sm:inline">{user.displayName?.split(' ')[0]}</span>
+                </div>
+                <button onClick={handleSignOut} className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600">
+                  <LogOut size={18} />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleSignIn}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+              >
+                <User size={18} />
+                Sign In to Track Progress
+              </button>
+            )}
           </div>
         </div>
 
+        {/* Read-only banner */}
+        {!user && (
+          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 mb-6">
+            <p className="text-yellow-200 text-center">
+              👀 <strong>Viewing Demo</strong> • Sign in to track your own AI/ML preparation progress
+            </p>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {tabs.map(tab => (
+          {tabs.filter(tab => user || tab.id !== 'log').map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
