@@ -22,6 +22,8 @@ import {
   LogOut, User, Loader, Moon, Sun
 } from 'lucide-react';
 import { useTheme } from './contexts/ThemeContext';
+import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
+import ShortcutsPanel from './components/common/ShortcutsPanel';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -56,6 +58,7 @@ export default function App() {
   const [data, setData] = useState(defaultData);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [saving, setSaving] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [todayLog, setTodayLog] = useState({
     date: new Date().toISOString().split('T')[0],
     leetcodeEasy: 0,
@@ -257,6 +260,24 @@ export default function App() {
     a.download = `aiml-prep-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
   };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    'ctrl+d': () => setActiveTab('dashboard'),
+    'ctrl+l': () => user && setActiveTab('log'),
+    'ctrl+h': () => setActiveTab('history'),
+    'ctrl+c': () => setActiveTab('content'),
+    'ctrl+s': (e) => {
+      e?.preventDefault();
+      if (user && activeTab === 'log') {
+        handleLogSubmit();
+      }
+    },
+    'ctrl+e': () => user && exportData(),
+    'ctrl+shift+t': () => toggleTheme(),
+    'esc': () => setShowShortcuts(false),
+    '?': () => setShowShortcuts(prev => !prev),
+  });
 
   // Loading state
   if (loading) {
@@ -837,6 +858,12 @@ export default function App() {
           <p>☁️ Data syncs automatically to cloud</p>
         </div>
       </div>
+
+      {/* Keyboard Shortcuts Panel */}
+      <ShortcutsPanel
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+      />
     </div>
   );
 }
