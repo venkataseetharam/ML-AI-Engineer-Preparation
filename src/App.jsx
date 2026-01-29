@@ -29,6 +29,7 @@ import TimeDistributionChart from './components/dashboard/TimeDistributionChart'
 import WeeklyTimeStats from './components/dashboard/WeeklyTimeStats';
 import ProblemAnalysisChart from './components/dashboard/ProblemAnalysisChart';
 import TopicTrackingChart from './components/dashboard/TopicTrackingChart';
+import VelocityChart from './components/dashboard/VelocityChart';
 import ProblemDetailsModal from './components/logging/ProblemDetailsModal';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
@@ -617,6 +618,9 @@ export default function App() {
               <ProblemAnalysisChart dailyLogs={data.dailyLogs} />
               <TopicTrackingChart dailyLogs={data.dailyLogs} />
             </div>
+
+            {/* Velocity Tracking */}
+            <VelocityChart dailyLogs={data.dailyLogs} />
           </div>
         )}
 
