@@ -19,8 +19,9 @@ import {
 import {
   Target, TrendingUp, Calendar, Award, BookOpen, Code, Brain,
   FileText, Download, Plus, Check, Flame,
-  LogOut, User, Loader
+  LogOut, User, Loader, Moon, Sun
 } from 'lucide-react';
+import { useTheme } from './contexts/ThemeContext';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -49,6 +50,7 @@ const defaultData = {
 };
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(defaultData);
@@ -312,7 +314,7 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -321,6 +323,15 @@ export default function App() {
             <p className="text-gray-400">Week {week} of 12 • {Math.max(0, 12 - week)} weeks remaining</p>
           </div>
           <div className="flex items-center gap-3">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+
             {user ? (
               <>
                 {saving && <Loader className="w-4 h-4 text-blue-400 animate-spin" />}
