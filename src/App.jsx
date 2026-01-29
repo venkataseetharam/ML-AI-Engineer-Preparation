@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 import {
   Target, TrendingUp, Calendar, Award, BookOpen, Code, Brain,
-  FileText, Download, Plus, Check, Flame, Clock,
+  FileText, Download, Plus, Check, Flame, Clock, X,
   LogOut, User, Loader, Moon, Sun
 } from 'lucide-react';
 import { useTheme } from './contexts/ThemeContext';
@@ -27,6 +27,9 @@ import ShortcutsPanel from './components/common/ShortcutsPanel';
 import HeatmapCalendar from './components/dashboard/HeatmapCalendar';
 import TimeDistributionChart from './components/dashboard/TimeDistributionChart';
 import WeeklyTimeStats from './components/dashboard/WeeklyTimeStats';
+import ProblemAnalysisChart from './components/dashboard/ProblemAnalysisChart';
+import TopicTrackingChart from './components/dashboard/TopicTrackingChart';
+import ProblemDetailsModal from './components/logging/ProblemDetailsModal';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -62,6 +65,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [saving, setSaving] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showProblemModal, setShowProblemModal] = useState(false);
+  const [editingProblem, setEditingProblem] = useState(null);
   const [todayLog, setTodayLog] = useState({
     date: new Date().toISOString().split('T')[0],
     leetcodeEasy: 0,
@@ -87,7 +92,8 @@ export default function App() {
       projects: 0,
       reading: 0,
       other: 0
-    }
+    },
+    problemDetails: []
   });
 
   // Auth state listener
@@ -161,6 +167,28 @@ export default function App() {
       alert('Failed to save. Please try again.');
     }
     setSaving(false);
+  };
+
+  // Handle problem details
+  const handleSaveProblem = (problemData) => {
+    if (editingProblem !== null) {
+      // Edit existing problem
+      const updated = [...todayLog.problemDetails];
+      updated[editingProblem] = problemData;
+      setTodayLog({ ...todayLog, problemDetails: updated });
+    } else {
+      // Add new problem
+      setTodayLog({
+        ...todayLog,
+        problemDetails: [...todayLog.problemDetails, problemData]
+      });
+    }
+    setEditingProblem(null);
+  };
+
+  const handleDeleteProblem = (index) => {
+    const updated = todayLog.problemDetails.filter((_, i) => i !== index);
+    setTodayLog({ ...todayLog, problemDetails: updated });
   };
 
   const handleLogSubmit = async () => {
@@ -583,6 +611,12 @@ export default function App() {
                 )}
               </div>
             </div>
+
+            {/* Problem Analysis Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ProblemAnalysisChart dailyLogs={data.dailyLogs} />
+              <TopicTrackingChart dailyLogs={data.dailyLogs} />
+            </div>
           </div>
         )}
 
@@ -642,6 +676,85 @@ export default function App() {
                     />
                   </div>
                 </div>
+
+                {/* Add Problem Details Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProblem(null);
+                    setShowProblemModal(true);
+                  }}
+                  className="mt-3 w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus size={16} />
+                  Add Problem Details
+                </button>
+
+                {/* Problem List */}
+                {todayLog.problemDetails.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {todayLog.problemDetails.map((problem, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-600 p-3 rounded-lg"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium">{problem.name}</span>
+                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                problem.difficulty === 'Easy'
+                                  ? 'bg-green-500 text-white'
+                                  : problem.difficulty === 'Medium'
+                                  ? 'bg-yellow-500 text-white'
+                                  : 'bg-red-500 text-white'
+                              }`}>
+                                {problem.difficulty}
+                              </span>
+                              {problem.success ? (
+                                <Check size={16} className="text-green-400" />
+                              ) : (
+                                <span className="text-xs text-gray-400">Attempted</span>
+                              )}
+                            </div>
+                            {problem.topics.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {problem.topics.map(topic => (
+                                  <span key={topic} className="text-xs bg-gray-700 px-2 py-0.5 rounded">
+                                    {topic}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <div className="text-xs text-gray-400 mt-1">
+                              {problem.attempts > 1 && `${problem.attempts} attempts • `}
+                              {problem.timeSpent > 0 && `${problem.timeSpent} min`}
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingProblem(index);
+                                setShowProblemModal(true);
+                              }}
+                              className="p-1 hover:bg-gray-700 rounded text-blue-400"
+                            >
+                              <FileText size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteProblem(index)}
+                              className="p-1 hover:bg-gray-700 rounded text-red-400"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -993,6 +1106,17 @@ export default function App() {
       <ShortcutsPanel
         isOpen={showShortcuts}
         onClose={() => setShowShortcuts(false)}
+      />
+
+      {/* Problem Details Modal */}
+      <ProblemDetailsModal
+        isOpen={showProblemModal}
+        onClose={() => {
+          setShowProblemModal(false);
+          setEditingProblem(null);
+        }}
+        onSave={handleSaveProblem}
+        existingProblem={editingProblem !== null ? todayLog.problemDetails[editingProblem] : null}
       />
     </div>
   );
