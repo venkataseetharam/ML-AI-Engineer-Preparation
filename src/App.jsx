@@ -31,6 +31,7 @@ import ProblemAnalysisChart from './components/dashboard/ProblemAnalysisChart';
 import TopicTrackingChart from './components/dashboard/TopicTrackingChart';
 import VelocityChart from './components/dashboard/VelocityChart';
 import ComparisonView from './components/dashboard/ComparisonView';
+import ProgressPredictions from './components/dashboard/ProgressPredictions';
 import ProblemDetailsModal from './components/logging/ProblemDetailsModal';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
@@ -625,6 +626,9 @@ export default function App() {
 
             {/* Comparison View */}
             <ComparisonView dailyLogs={data.dailyLogs} />
+
+            {/* Progress Predictions */}
+            <ProgressPredictions dailyLogs={data.dailyLogs} startDate={data.startDate} />
           </div>
         )}
 
