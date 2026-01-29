@@ -19,7 +19,7 @@ import {
 import {
   Target, TrendingUp, Calendar, Code, Brain,
   FileText, Download, Plus, Check, Flame, Clock,
-  LogOut, User, Loader, Moon, Sun
+  LogOut, User, Loader, Moon, Sun, Folder
 } from 'lucide-react';
 import { useTheme } from './contexts/ThemeContext';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
@@ -30,6 +30,8 @@ import WeeklyTimeStats from './components/dashboard/WeeklyTimeStats';
 import VelocityChart from './components/dashboard/VelocityChart';
 import ComparisonView from './components/dashboard/ComparisonView';
 import ProgressPredictions from './components/dashboard/ProgressPredictions';
+import ProjectsTab from './components/projects/ProjectsTab';
+import MLTopicsTab from './components/ml/MLTopicsTab';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -47,12 +49,12 @@ const TARGETS = {
 const defaultData = {
   dailyLogs: [],
   startDate: new Date().toISOString().split('T')[0],
+  projects: [],
+  mlTopics: [],
   settings: {
     weeklyGoals: {
       leetcode: 13,
-      systemDesign: 2,
-      mlTheory: 1,
-      projects: 1
+      systemDesign: 2
     }
   }
 };
@@ -324,6 +326,8 @@ export default function App() {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
     { id: 'log', label: 'Daily Log', icon: Plus },
+    { id: 'projects', label: 'Projects', icon: Folder },
+    { id: 'ml-topics', label: 'ML Topics', icon: Brain },
     { id: 'history', label: 'History', icon: Calendar },
     { id: 'content', label: 'Content', icon: FileText }
   ];
@@ -889,6 +893,30 @@ export default function App() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Projects Tab */}
+        {activeTab === 'projects' && user && (
+          <ProjectsTab
+            projects={data.projects || []}
+            onSave={(updatedProjects) => {
+              const newData = { ...data, projects: updatedProjects };
+              setData(newData);
+              saveToFirestore(newData);
+            }}
+          />
+        )}
+
+        {/* ML Topics Tab */}
+        {activeTab === 'ml-topics' && user && (
+          <MLTopicsTab
+            topics={data.mlTopics || []}
+            onSave={(updatedTopics) => {
+              const newData = { ...data, mlTopics: updatedTopics };
+              setData(newData);
+              saveToFirestore(newData);
+            }}
+          />
         )}
 
         {/* Content Tab */}
