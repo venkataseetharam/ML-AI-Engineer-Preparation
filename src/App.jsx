@@ -24,6 +24,7 @@ import {
 import { useTheme } from './contexts/ThemeContext';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 import ShortcutsPanel from './components/common/ShortcutsPanel';
+import HeatmapCalendar from './components/dashboard/HeatmapCalendar';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
@@ -486,6 +487,9 @@ export default function App() {
                 ))}
               </div>
             </div>
+
+            {/* Activity Heatmap */}
+            <HeatmapCalendar dailyLogs={data.dailyLogs} />
 
             {/* Progress Bars */}
             <div className="bg-gray-800 p-4 rounded-xl">
