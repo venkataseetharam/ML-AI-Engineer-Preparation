@@ -31,8 +31,6 @@ const TARGETS = {
   projects: 6,
   mockInterviews: 12,
   researchPapers: 10,
-  kaggleCompetitions: 3,
-  mlopsDeployments: 5,
   blogPosts: 6,
   linkedinPosts: 48
 };
@@ -71,8 +69,6 @@ export default function App() {
     projectLLM: false,
     mockInterview: false,
     researchPaper: false,
-    kaggleCompetition: false,
-    mlopsDeployment: false,
     blogPost: false,
     linkedinPost: false,
     notes: ''
@@ -163,14 +159,12 @@ export default function App() {
                 (log.projectAgents ? 1 : 0) + (log.projectFineTuning ? 1 : 0) + (log.projectLLM ? 1 : 0),
       mockInterviews: acc.mockInterviews + (log.mockInterview ? 1 : 0),
       researchPapers: acc.researchPapers + (log.researchPaper ? 1 : 0),
-      kaggleCompetitions: acc.kaggleCompetitions + (log.kaggleCompetition ? 1 : 0),
-      mlopsDeployments: acc.mlopsDeployments + (log.mlopsDeployment ? 1 : 0),
       blogPosts: acc.blogPosts + (log.blogPost ? 1 : 0),
       linkedinPosts: acc.linkedinPosts + (log.linkedinPost ? 1 : 0)
     }), {
       leetcode: 0, leetcodeEasy: 0, leetcodeMedium: 0, leetcodeHard: 0,
       systemDesign: 0, mlTheory: 0, projects: 0,
-      mockInterviews: 0, researchPapers: 0, kaggleCompetitions: 0, mlopsDeployments: 0,
+      mockInterviews: 0, researchPapers: 0,
       blogPosts: 0, linkedinPosts: 0
     });
   };
@@ -207,6 +201,33 @@ export default function App() {
     const diffTime = Math.abs(now - start);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.min(12, Math.ceil(diffDays / 7) || 1);
+  };
+
+  const calculateWeeklyProgress = () => {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Get Monday of current week
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+
+    const weekLogs = data.dailyLogs.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= monday && logDate <= now;
+    });
+
+    return weekLogs.reduce((acc, log) => ({
+      leetcode: acc.leetcode + (log.leetcodeEasy || 0) + (log.leetcodeMedium || 0) + (log.leetcodeHard || 0),
+      systemDesign: acc.systemDesign + (log.systemDesign || 0),
+      mlTheory: acc.mlTheory + (log.mlTheory || 0),
+      projects: acc.projects + (log.projectML ? 1 : 0) + (log.projectDL ? 1 : 0) + (log.projectRAG ? 1 : 0) +
+                (log.projectAgents ? 1 : 0) + (log.projectFineTuning ? 1 : 0) + (log.projectLLM ? 1 : 0)
+    }), {
+      leetcode: 0,
+      systemDesign: 0,
+      mlTheory: 0,
+      projects: 0
+    });
   };
 
   const exportData = () => {
@@ -264,6 +285,9 @@ export default function App() {
   const streak = calculateStreak();
   const week = getWeekNumber();
 
+  const weeklyProgress = calculateWeeklyProgress();
+  const weeklyGoals = data.settings?.weeklyGoals || defaultData.settings.weeklyGoals;
+
   const progressData = [
     { name: 'LeetCode', current: totals.leetcode, target: TARGETS.leetcode, percent: Math.round((totals.leetcode / TARGETS.leetcode) * 100) },
     { name: 'Sys Design', current: totals.systemDesign, target: TARGETS.systemDesign, percent: Math.round((totals.systemDesign / TARGETS.systemDesign) * 100) },
@@ -271,8 +295,13 @@ export default function App() {
     { name: 'Projects', current: totals.projects, target: TARGETS.projects, percent: Math.round((totals.projects / TARGETS.projects) * 100) },
     { name: 'Mocks', current: totals.mockInterviews, target: TARGETS.mockInterviews, percent: Math.round((totals.mockInterviews / TARGETS.mockInterviews) * 100) },
     { name: 'Papers', current: totals.researchPapers, target: TARGETS.researchPapers, percent: Math.round((totals.researchPapers / TARGETS.researchPapers) * 100) },
-    { name: 'Kaggle', current: totals.kaggleCompetitions, target: TARGETS.kaggleCompetitions, percent: Math.round((totals.kaggleCompetitions / TARGETS.kaggleCompetitions) * 100) },
-    { name: 'MLOps', current: totals.mlopsDeployments, target: TARGETS.mlopsDeployments, percent: Math.round((totals.mlopsDeployments / TARGETS.mlopsDeployments) * 100) },
+  ];
+
+  const weeklyProgressData = [
+    { name: 'LeetCode', current: weeklyProgress.leetcode, target: weeklyGoals.leetcode, percent: Math.round((weeklyProgress.leetcode / weeklyGoals.leetcode) * 100) },
+    { name: 'System Design', current: weeklyProgress.systemDesign, target: weeklyGoals.systemDesign, percent: Math.round((weeklyProgress.systemDesign / weeklyGoals.systemDesign) * 100) },
+    { name: 'ML Theory', current: weeklyProgress.mlTheory, target: weeklyGoals.mlTheory, percent: Math.round((weeklyProgress.mlTheory / weeklyGoals.mlTheory) * 100) },
+    { name: 'Projects', current: weeklyProgress.projects, target: weeklyGoals.projects, percent: Math.round((weeklyProgress.projects / weeklyGoals.projects) * 100) },
   ];
 
   const chartData = data.dailyLogs.slice(-14).map(log => ({
@@ -370,6 +399,36 @@ export default function App() {
                 </div>
                 <div className="text-3xl font-bold">{totals.projects}</div>
                 <div className="text-sm opacity-75">/ {TARGETS.projects}</div>
+              </div>
+            </div>
+
+            {/* Weekly Dashboard */}
+            <div className="bg-gradient-to-r from-blue-900 to-purple-900 p-6 rounded-xl border border-blue-700">
+              <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Calendar size={24} className="text-blue-400" />
+                This Week's Goals
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {weeklyProgressData.map((item) => (
+                  <div key={item.name} className="bg-gray-800/50 p-4 rounded-lg">
+                    <div className="text-sm text-gray-400 mb-2">{item.name}</div>
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <span className="text-3xl font-bold text-white">{item.current}</span>
+                      <span className="text-gray-400">/ {item.target}</span>
+                    </div>
+                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          item.current >= item.target ? 'bg-green-500' : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${Math.min(100, item.percent)}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {item.current >= item.target ? '✓ Complete!' : `${item.target - item.current} remaining`}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -596,7 +655,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                 <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
                   <input
                     type="checkbox"
@@ -614,24 +673,6 @@ export default function App() {
                     className="w-5 h-5 rounded"
                   />
                   <span className="text-sm">Research Paper</span>
-                </label>
-                <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={todayLog.kaggleCompetition}
-                    onChange={(e) => setTodayLog({ ...todayLog, kaggleCompetition: e.target.checked })}
-                    className="w-5 h-5 rounded"
-                  />
-                  <span className="text-sm">Kaggle</span>
-                </label>
-                <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={todayLog.mlopsDeployment}
-                    onChange={(e) => setTodayLog({ ...todayLog, mlopsDeployment: e.target.checked })}
-                    className="w-5 h-5 rounded"
-                  />
-                  <span className="text-sm">MLOps Deploy</span>
                 </label>
                 <label className="flex items-center gap-3 bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600">
                   <input
