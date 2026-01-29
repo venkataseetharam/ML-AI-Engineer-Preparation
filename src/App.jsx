@@ -85,19 +85,35 @@ export default function App() {
 
   // Firestore listener for real-time data sync
   useEffect(() => {
-    if (!user) return;
+    const ownerUID = import.meta.env.VITE_PUBLIC_OWNER_UID;
+    const userToFetch = user ? user.uid : ownerUID;
 
-    const docRef = doc(db, 'users', user.uid);
+    if (!userToFetch || userToFetch === 'YOUR_USER_ID_HERE') {
+      setData(defaultData);
+      return;
+    }
+
+    const docRef = doc(db, 'users', userToFetch);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setData(docSnap.data());
-      } else {
-        // Initialize new user data
+      } else if (user) {
+        // Initialize new user data only if they're logged in
         setDoc(docRef, defaultData);
+      } else {
+        // Owner hasn't created data yet
+        setData(defaultData);
       }
     });
 
     return () => unsubscribe();
+  }, [user]);
+
+  // Log user ID when signed in (for copying to env file)
+  useEffect(() => {
+    if (user) {
+      console.log('🔑 Your Firebase User ID (copy this to .env.local as VITE_PUBLIC_OWNER_UID):', user.uid);
+    }
   }, [user]);
 
   const handleSignIn = async () => {
@@ -330,15 +346,6 @@ export default function App() {
             )}
           </div>
         </div>
-
-        {/* Read-only banner */}
-        {!user && (
-          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4 mb-6">
-            <p className="text-yellow-200 text-center">
-              👀 <strong>Viewing Demo</strong> • Sign in to track your own AI/ML preparation progress
-            </p>
-          </div>
-        )}
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
